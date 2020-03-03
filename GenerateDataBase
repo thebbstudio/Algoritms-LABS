@@ -1,0 +1,144 @@
+using System;
+using System.Data.SqlClient;
+using System.Windows.Forms;
+using System.Data;
+
+namespace Creater_DB
+{
+    class Program
+    {
+        public static Random rnd;
+        static string  Name()//Генерирует Имя 
+        {
+           string[] NameArray = { "Сергей", "Костя", "Влад","Володя","Илья"};
+        
+           return NameArray[rnd.Next(NameArray.Length)];
+        }
+
+        static string lastName()//Генерирует Фамилию
+        {
+            string[] lastNameArray = { "Сёмкин", "Маяковкий", "Чепуров", "Кашин", "Бродский" };
+
+            return lastNameArray[rnd.Next(lastNameArray.Length)];
+        }
+
+        static string fatherName()//Генерирует отчество 
+        {
+            string[] fatherNameArray = { "Сергеевич", "Владимирович", "Андреевич", "Ильич", "Петрович",  };
+
+            return  fatherNameArray[rnd.Next(fatherNameArray.Length)];                  
+        }
+
+        static string BDUser()// Генерирует Дату Рождения
+        {
+            string BD = "";//Bithe day
+            
+            BD = BD + Convert.ToString(rnd.Next(1, 30)) + ".";//generet day
+
+            int month = rnd.Next(1, 12);
+            if (month < 10)//Ветвления для того случая, если месяц будет по счёту меньше 10го и в записи приписывался 0 (12.03.1999, а не 12.3.1999)
+                BD = BD + "0" + Convert.ToString(rnd.Next(1, 12)) + "/";//generet day
+            else
+                BD = BD + Convert.ToString(rnd.Next(1, 12)) + "/";//generet day
+
+            BD = BD + Convert.ToString(rnd.Next(1955, 2001));//generet day
+            return BD;
+        }
+
+        static string Dolgnost()//Генерирует должность
+        {
+            string[] dolgnostArray = { "Директор", "Руководитель отдела", "Уборщик(ца)", "Сотрудник отдела" };
+            Random rnd = new Random();
+            
+            return dolgnostArray[rnd.Next(dolgnostArray.Length)];
+
+        }
+        [STAThread]
+        static void Main(string[] args)
+        {
+            rnd = new Random();
+            Console.Write("Введите требуемое кол-во сотрудников: ");//Уточнаяем требуемое кол-во сотрудников
+            int kolvo = Convert.ToInt32(Console.ReadLine());
+
+            Console.WriteLine("Выберете место создания БД");//Три троки ниже для того, чтобы диалоговое окно резко не вылезало
+            Console.WriteLine("Press any key...");
+            Console.ReadKey();
+
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog
+            {
+                Filter = "All files (*.*)|*.*",
+                RestoreDirectory = true
+
+            };
+
+            saveFileDialog1.FileName = "Test_DB";
+            string path;
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                path = saveFileDialog1.FileName; // запоминаем путь до желаемого сохранения базы
+            //    Console.WriteLine(path);
+
+            }
+            else// если произошла какая-то ошибка и путь не был указан программа прекратит выполнения с помощью return
+            {
+                path = "";
+                return;
+            }
+            String str;
+            SqlConnection myConn = new SqlConnection("Server=localhost;Integrated security=SSPI;database=master");
+            //Указываем данные о будующей БД попутно вставлая путь для хранения самой БД и логов
+            str = "CREATE DATABASE MyDatabase ON PRIMARY " +
+                "(NAME = Test_DB, " +
+                "FILENAME = '" + path + ".mdf', " +
+                "SIZE = 2MB, MAXSIZE = 10MB, FILEGROWTH = 10%) " +
+                "LOG ON (NAME = Test_DB, " +
+                "FILENAME = '" + path + ".ldf', " +
+                "SIZE = 1MB, " +
+                "MAXSIZE = 5MB, " +
+                "FILEGROWTH = 10%)";
+
+            SqlCommand myCommandTable = new SqlCommand(str, myConn);//Создаём БД 
+            try
+            {
+                myConn.Open();
+                myCommandTable.ExecuteNonQuery();
+                MessageBox.Show("DataBase is Created Successfully", "MyProgram", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "MyProgram", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+           
+            str = @"CREATE TABLE WorkerList (WorkerID int(11) NOT NULL AUTO_INCREMENT, NameWorker TEXT, LastNameWorker TEXT, FatherName TEXT, BirthDayWorker DATE, Dolgnoste TEXT)";
+
+            myCommandTable = new SqlCommand(str, myConn); // создаём таблицу и в цикле добавляем значения
+            try
+            {
+                myConn.Open();                
+                myCommandTable.ExecuteNonQuery();
+                MessageBox.Show("DataBase is Created Successfully", "MyProgram", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                for (int i = 1; i < kolvo; i++)
+                {
+                    str = @"INSERT                                                                                                ////разобраться с ошибкой соединения
+                    WorkerList(WorkerID, NameWorker, LastNameWorker, FatherName, BirthDayWorker, Dolgnoste)                       ////разобраться с ошибкой соединения
+                    VALUES" + Name() + ", " + lastName() + ", " + fatherName() + ", " + BDUser() + ", " + Dolgnost();             ////разобраться с ошибкой соединения
+                    myCommandTable = new SqlCommand(str, myConn);                                                                 ////разобраться с ошибкой соединения
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "MyProgram", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            finally
+            {
+                if (myConn.State == ConnectionState.Open)
+                {
+                    myConn.Close();
+                }
+                Console.ReadKey();
+            }
+            Console.ReadKey();
+
+        }
+    }
+}
