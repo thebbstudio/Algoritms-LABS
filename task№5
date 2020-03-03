@@ -1,0 +1,73 @@
+using System;
+using System.Windows;
+using System.Diagnostics;
+namespace Lab3._3
+{
+    class Program
+    {
+
+        static void Main(string[] args)
+        {                                                                   
+            Vector vector1 = new Vector (0,1);                              
+            Vector vector2 = new Vector ();                                 //ЗАДАНИЕ ЗАКЛЮЧАЕТСЯ В ТОМ, ЧТО НА ПЛОСКОСТИ ИМЕЮТСЯ ТОЧКИ, А НАМ ИЗВЕСТНЫ КООРДИНАТЫ
+            Console.Write("Кол-во точек : ");                               //НУЖНО ПРОЙТИСЬ ПО КРАЙНИМ ТОЧКАМ И НАЙТИ ПЕРИМЕТР ПОЛУЧИВШЕЙСЯ ФИГУРЫ
+            int i = 0,Points = int.Parse(Console.ReadLine());             
+            Random rnd = new Random();                                    
+            int[] x = new int[Points]; int[] y = new int[Points];         
+                string[] str;                                             
+                while (i != Points)                                       
+                {
+                    Console.Write("№" + (i + 1) + ")");
+                    str = Console.ReadLine().Split(' ');
+                    x[i] = int.Parse(str[0]); y[i++] = int.Parse(str[1]);
+                }
+		Stopwatch stopWatch = new Stopwatch(); 
+		stopWatch.Start(); 
+            double BigСorne =  0 , VrСorner = 0;
+            int MinPoint = x[0], k = 0;
+            //Находим крайную точку
+            for (i = 0; i < x.Length; i++)
+            {if (MinPoint > x[i])
+                { MinPoint = x[i]; k = i;}  }
+            int StartingPoint = k;
+            //Вторая точка
+            int number = 0;
+            for (i = 0; i < x.Length; i++)
+            {
+                vector2.X = x[i] - x[k]; vector2.Y = y[i] - y[k];                
+                VrСorner =  Vector.AngleBetween(vector2, vector1);
+                if (VrСorner > BigСorne) { BigСorne = VrСorner; number = i; }
+            }
+
+            vector2.X = x[number] - x[k]; vector2.Y = y[number] - y[k];
+
+            double perimetr = vector2.Length;
+            i = 0;
+            // идём искать другие точки
+            int Current_Point = number, zapomni = 0, bolshe_five = 0;
+            number = k;
+
+            
+            do
+            {
+                vector1 = -vector2;  BigСorne = 0;
+                        for (i = 0; i<x.Length;i++)
+                        {
+                            vector2.X = x[i] - x[Current_Point]; vector2.Y = y[i] - y[Current_Point];
+                            VrСorner = Vector.AngleBetween(vector2, vector1);
+                            if (VrСorner > BigСorne && i!=Current_Point) { BigСorne = VrСorner; zapomni = i; }
+                        }
+                number = Current_Point;
+                Current_Point = zapomni;
+                vector2.X = x[Current_Point] - x[number]; vector2.Y = y[Current_Point] - y[number];
+                perimetr += vector2.Length;
+                bolshe_five++;
+
+            } while (Current_Point != k);
+            stopWatch.Stop(); 
+	    Console.WriteLine(stopWatch.Elapsed); 
+            Console.WriteLine("Периметр фигуры равен " + perimetr);            
+            Console.ReadKey();
+        }
+    }
+}
